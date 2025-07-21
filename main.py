@@ -225,7 +225,7 @@ def map_fastqs(
         r2_filename = r1_filename.replace(r1_fastq_suffix, r2_fastq_suffix)
         prefix = os.path.basename(r1_filename).split(r1_fastq_suffix)[0]
         process = run(
-            f"STAR --runThreadN {n_cores} --genomeDir {reference_genome} --readFilesIn {r1_filename} {r2_filename} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {n_cores} --outFileNamePrefix {prefix} --readFilesCommand gunzip -c"
+            f"STAR --runThreadN {int(n_cores)} --genomeDir {reference_genome} --readFilesIn {r1_filename} {r2_filename} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {n_cores} --outFileNamePrefix {prefix} --readFilesCommand gunzip -c"
         )
         processes.append(process)
     # wait for all processes to finish
@@ -374,6 +374,7 @@ def generate_count_matrix(
         df.columns = [os.path.basename(count_file).split(filename_delimiter)[0]]
         counts.append(df)
     counts = pd.concat(counts, axis=1).fillna(0)
+    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
     df.to_csv(output_filename)
     logger.info(f"Count matrix generated at {output_filename}")
 
