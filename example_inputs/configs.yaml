@@ -1,0 +1,18 @@
+# PIPELINE CONFIGURATION
+pipeline_start_step: 'raw_fastq'
+run_directory: 'data/pipeline_runs'
+# FASTQ CONFIGURATION
+raw_fastq_directory: 'data/raw_data'
+raw_fastqc_directory: 'qc_reports/raw_fastqc'
+fastq_suffix: '.fastq.gz'
+r1: 'read1'
+r2: 'read2'
+# TRIMMING CONFIGURATION
+trimmed_fastq_directory: 'data/trimmed_data'
+trimmed_fastqc_directory: 'qc_reports/trimmed_fastqc'
+adapter_suffix: '.adapters_inferred.fa'
+known_adapter_filename: 'XXX'
+known_adapter_suffix: '.adapters_stats.txt'
+# MAPPING CONFIGURATION
+reference_directory: 'XXX'
+STAR_directory: 'XXX'
