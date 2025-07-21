@@ -1,0 +1,7 @@
+#File	/fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/data/test_read2.fastq.gz
+#Total	2500
+#Matched	31	1.24000%
+#Name	Reads	ReadsPct
+TruSeq_Universal_Adapter	20	0.80000%
+PCR_Primers	7	0.28000%
+pcr_dimer	4	0.16000%
