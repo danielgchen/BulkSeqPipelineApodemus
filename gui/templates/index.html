@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bioinformatics Pipeline Runner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Bioinformatics Pipeline Runner 🔬</h1>
+
+    <div class="container">
+        <div class="section">
+            <h2>Configuration (configs.yaml)</h2>
+            <form id="config-form">
+                <label for="known_adapters_filename">known_adapters_filename:</label>
+                <input type="text" id="known_adapters_filename" name="known_adapters_filename">
+                <button type="submit">Save Config</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Pipeline Steps</h2>
+            <div id="pipeline-steps">
+                {% for step in pipeline_steps %}
+                <div class="step" id="step-{{ step }}">
+                    <span class="step-name">{{ step }}</span>
+                    <button class="run-btn" data-step="{{ step }}">▶ Run from here</button>
+                </div>
+                {% endfor %}
+            </div>
+            <button id="clear-history-btn">Clear Run History</button>
+        </div>
+
+        <div class="section">
+            <h2>Live Log</h2>
+            <pre id="log-output"></pre>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
