@@ -1,17 +1,39 @@
-body { font-family: sans-serif; background-color: #f4f4f9; color: #333; }
-.container { max-width: 900px; margin: auto; padding: 20px; }
-.section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-h1, h2 { color: #444; }
-#log-output { background-color: #222; color: #0f0; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto; }
-.step { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; margin-bottom: 5px; border-radius: 5px; transition: background-color 0.3s, border-color 0.3s; }
-.step-name { font-weight: bold; }
+body {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+}
 
-/* Status Colors */
-.step.completed { background-color: #d4edda; border-color: #c3e6cb; }
-.step.running { background-color: #fff3cd; border-color: #ffeeba; }
-.step.failed { background-color: #f8d7da; border-color: #f5c6cb; }
+.placeholder-text::placeholder {
+    color: #9ca3af;
+}
 
-button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
-button:hover { background-color: #0056b3; }
-#clear-history-btn { background-color: #dc3545; }
-input[type="text"] { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+/* Styles for the flowchart nodes */
+.flowchart-node {
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease;
+}
+
+/* Arrow connecting flowchart nodes */
+.flowchart-arrow {
+    position: relative;
+    width: 2px;
+    height: 30px;
+    background-color: #d1d5db; /* gray-300 */
+}
+
+.flowchart-arrow::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #d1d5db; /* gray-300 */
+}
+
+#logo {
+    width: 110px;
+    float: left;
+    margin-top: -10px;
+    margin-right: -150px;
+    margin-left: 50px;
+}

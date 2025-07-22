@@ -1,96 +1,160 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const configForm = document.getElementById('config-form');
-    const knownAdaptersInput = document.getElementById('known_adapters_filename');
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('config-form');
+    const runButton = document.getElementById('run-button');
     const logOutput = document.getElementById('log-output');
-    
-    // --- Initial State Loading ---
-    
-    // 1. Load and display the current configuration
-    const loadConfig = async () => {
-        const response = await fetch('/config');
-        const config = await response.json();
-        knownAdaptersInput.value = config.known_adapter_filename;
-    };
+    const flowchartContainer = document.getElementById('flowchart');
+    const modal = document.getElementById('message-modal');
+    const modalMessage = document.getElementById('modal-message');
 
-    // 2. Load and display the run history
-    const loadHistory = async () => {
-        const response = await fetch('/history');
-        const history = await response.json();
-        document.querySelectorAll('.step').forEach(stepEl => {
-            stepEl.classList.remove('completed', 'running', 'failed'); // Reset all
-            const stepName = stepEl.id.replace('step-', '');
-            if (history.includes(stepName)) {
-                stepEl.classList.add('completed');
+    // --- Define Pipeline Modules ---
+    const modules = [
+        "Quality_Control",
+        "Adapter_Trimming",
+        "Alignment",
+        "Post-Alignment_Processing",
+        "Variant_Calling",
+        "Annotation"
+    ];
+
+    // --- Initialize Flowchart ---
+    function initializeFlowchart() {
+        flowchartContainer.innerHTML = ''; // Clear previous state
+        modules.forEach((module, index) => {
+            const node = document.createElement('div');
+            node.id = `node-${module}`;
+            node.className = 'flowchart-node w-4/5 text-center p-3 rounded-lg border-2 border-gray-300 bg-gray-100 text-gray-500 font-medium';
+            node.textContent = module.replace(/_/g, ' ');
+            flowchartContainer.appendChild(node);
+
+            if (index < modules.length - 1) {
+                const arrow = document.createElement('div');
+                arrow.className = 'flowchart-arrow';
+                flowchartContainer.appendChild(arrow);
             }
         });
-    };
-    
-    // --- Event Handling ---
+    }
 
-    // 3. Handle saving the configuration
-    configForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const response = await fetch('/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 'known_adapter_filename': knownAdaptersInput.value })
+    initializeFlowchart(); // Initial setup
+
+    // --- Handle Form Submission ---
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        runButton.disabled = true;
+        runButton.textContent = 'Running...';
+        runButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+        // Reset UI for new run
+        initializeFlowchart();
+        logOutput.textContent = '';
+
+        // Collect form data, using placeholder if value is empty
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            const input = form.elements[key];
+            data[key] = value.trim() || input.placeholder;
         });
-        const result = await response.json();
-        alert(result.message);
-    });
-    
-    // 4. Handle clicks on the "Run" buttons
-    document.querySelectorAll('.run-btn').forEach(button => {
-        button.addEventListener('click', async () => {
-            const step = button.dataset.step;
-            logOutput.textContent = `Attempting to run pipeline from step: ${step}...\n`;
-            
-            await fetch('/run', {
+
+        try {
+            const response = await fetch('/run', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ start_step: step })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
             });
-        });
-    });
 
-    // 5. Handle "Clear History" button
-    document.getElementById('clear-history-btn').addEventListener('click', async () => {
-        if (confirm('Are you sure you want to clear the run history?')) {
-            await fetch('/history', { method: 'POST' });
-            loadHistory(); // Refresh UI
-        }
-    });
-
-    // 6. Listen for Server-Sent Events (SSE) for live logs
-    const eventSource = new EventSource('/stream');
-    eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        logOutput.textContent += `${data.message}\n`;
-        logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll
-
-        // Update step status based on log messages
-        if (data.message.includes('Executing pipeline step:')) {
-            const stepName = data.message.split(': ')[1].trim();
-            const stepEl = document.getElementById(`step-${stepName}`);
-            if (stepEl) {
-                stepEl.classList.remove('completed', 'failed');
-                stepEl.classList.add('running');
+            const result = await response.json();
+            if (result.status === 'success') {
+                // Start polling for status updates
+                startPolling();
+            } else {
+                showModal(`Error: ${result.message}`);
+                resetRunButton();
             }
-        } else if (data.message.includes('SUCCESS: Completed step')) {
-             const stepName = data.message.split('step ')[1].trim();
-             const stepEl = document.getElementById(`step-${stepName}`);
-             if (stepEl) {
-                stepEl.classList.remove('running', 'failed');
-                stepEl.classList.add('completed');
-             }
-        } else if (data.level === 'ERROR') {
-             document.querySelectorAll('.step.running').forEach(el => el.classList.add('failed'));
-        } else if (data.level === 'COMPLETE') {
-            loadHistory(); // Final refresh when pipeline finishes
+        } catch (error) {
+            showModal(`Network Error: ${error.message}`);
+            resetRunButton();
         }
-    };
-    
-    // --- Initial Page Load ---
-    loadConfig();
-    loadHistory();
+    });
+
+    let pollingInterval;
+
+    function startPolling() {
+        // Clear any existing interval
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+        }
+        // Poll every 2 seconds for faster updates
+        pollingInterval = setInterval(fetchStatus, 2000);
+    }
+
+    async function fetchStatus() {
+        try {
+            const response = await fetch('/status');
+            const data = await response.json();
+            const logContent = data.log_content;
+            
+            logOutput.textContent = logContent;
+            logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll to bottom
+
+            updateFlowchart(logContent);
+
+            // Stop polling if the pipeline is finished
+            if (logContent.includes("INFO: Pipeline finished.")) {
+                clearInterval(pollingInterval);
+                resetRunButton();
+            }
+        } catch (error) {
+            console.error('Error fetching status:', error);
+            clearInterval(pollingInterval); // Stop on error
+            resetRunButton();
+        }
+    }
+
+    function updateFlowchart(logContent) {
+        const lines = logContent.split('\n');
+        lines.forEach(line => {
+            if (line.startsWith('STATUS:')) {
+                const parts = line.split(' ');
+                const moduleName = parts[1];
+                const status = parts[2];
+                const node = document.getElementById(`node-${moduleName}`);
+                if (node) {
+                    updateNodeStyle(node, status);
+                }
+            }
+        });
+    }
+
+    function updateNodeStyle(node, status) {
+        // Remove all status-related classes first
+        node.classList.remove('bg-gray-100', 'border-gray-300', 'text-gray-500', 'bg-blue-100', 'border-blue-500', 'text-blue-800', 'bg-green-100', 'border-green-500', 'text-green-800', 'bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
+        
+        switch (status) {
+            case 'in_progress':
+                node.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-800');
+                break;
+            case 'finished':
+                node.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                break;
+            case 'skipped':
+                node.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
+                break;
+            default: // Pending
+                node.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-500');
+                break;
+        }
+    }
+
+    function resetRunButton() {
+        runButton.disabled = false;
+        runButton.textContent = 'Run Pipeline';
+        runButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    function showModal(message) {
+        modalMessage.textContent = message;
+        modal.classList.remove('hidden');
+    }
 });

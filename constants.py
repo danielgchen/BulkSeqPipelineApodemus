@@ -27,4 +27,5 @@ RUN_DIRECTORIES = [
     "qc_reports_directory",
     "multiqc_output_directory",
 ]
-    
+# location of the status file
+STATUS_FILE = "status.log"

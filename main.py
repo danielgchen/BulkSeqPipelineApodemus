@@ -13,6 +13,13 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
+def write_status(message: str) -> None:
+    # write a message to the status file
+    with open(STATUS_FILE, "a") as f:
+        f.write(f"{message}\n")
+    logger.info(f"Status updated to {STATUS_FILE} with {message}")
+
+
 def setup_logger(filename: str) -> None:
     # set up logger to write to a given file
     logging.basicConfig(
@@ -87,10 +94,14 @@ def intake_adapter_freqs(filename: str) -> pd.Series:
     logger.info(f"Identifying dominant adapter from {filename}")
     adapter_freqs = None
     try:
-        adapter_freqs_raw = pd.read_table(filename, comment="#", header=None, index_col=0)
+        adapter_freqs_raw = pd.read_table(
+            filename, comment="#", header=None, index_col=0
+        )
         adapter_freqs = adapter_freqs_raw[2].str.replace("%", "").astype(float)
     except Exception as e:
-        logger.info(f"Exception while trying to intake adapter frequencies from {filename}. This may be an expected behavior if there are simply no adapters found in the FASTQ. See the following error {e}")
+        logger.info(
+            f"Exception while trying to intake adapter frequencies from {filename}. This may be an expected behavior if there are simply no adapters found in the FASTQ. See the following error {e}"
+        )
     return adapter_freqs
 
 
@@ -108,7 +119,9 @@ def detect_adapters(
     os.makedirs(output_directory, exist_ok=True)
     r1_filenames = glob(os.path.join(fastq_directory, f"*{r1_fastq_suffix}"))
     if len(r1_filenames) == 0:
-        raise ValueError(f"There are no FASTQs to detect adapters from in {fastq_directory}")
+        raise ValueError(
+            f"There are no FASTQs to detect adapters from in {fastq_directory}"
+        )
     logger.info(f"Detecting adapters for {fastq_directory} N={len(r1_filenames)} files")
     processes = []
     for r1_filename in r1_filenames:
@@ -156,7 +169,7 @@ def fasta_name_to_seq(filename: str) -> Dict[str, str]:
     current_key = None
     with open(filename, "rt") as f:
         for line in f.readlines():
-            # skip line 
+            # skip line
             if line.strip() == "":
                 continue
             # read in proper line otherwise
@@ -167,16 +180,27 @@ def fasta_name_to_seq(filename: str) -> Dict[str, str]:
     return name2seq
 
 
-def quantify_adapters(r1_fastq_suffix: str, r2_fastq_suffix: str, fastq_suffix: str, known_adapter_suffix: str, known_adapter_filename: str, output_directory: str) -> Tuple[str, str]:
+def quantify_adapters(
+    r1_fastq_suffix: str,
+    r2_fastq_suffix: str,
+    fastq_suffix: str,
+    known_adapter_suffix: str,
+    known_adapter_filename: str,
+    output_directory: str,
+) -> Tuple[str, str]:
     # identify the most common adapter sequence for read1 and read2
-    r1_adapter_filenames = glob(os.path.join(
-        output_directory,
-        "*" + r1_fastq_suffix.replace(fastq_suffix, known_adapter_suffix),
-    ))
-    r2_adapter_filenames = glob(os.path.join(
-        output_directory,
-        "*" + r2_fastq_suffix.replace(fastq_suffix, known_adapter_suffix),
-    ))
+    r1_adapter_filenames = glob(
+        os.path.join(
+            output_directory,
+            "*" + r1_fastq_suffix.replace(fastq_suffix, known_adapter_suffix),
+        )
+    )
+    r2_adapter_filenames = glob(
+        os.path.join(
+            output_directory,
+            "*" + r2_fastq_suffix.replace(fastq_suffix, known_adapter_suffix),
+        )
+    )
     # read in the adapter frequencies for read1 and read2
     r1_adapters, r2_adapters = [], []
     for r1_adapter_filename, r2_adapter_filename in zip(
@@ -197,7 +221,10 @@ def quantify_adapters(r1_fastq_suffix: str, r2_fastq_suffix: str, fastq_suffix: 
     logger.info(f"Most common adapter for read2: {r2_adapter_name}")
     # retrieve the sequences for the relevant adapters
     name2adapter = fasta_name_to_seq(filename=known_adapter_filename)
-    r1_adapter, r2_adapter = name2adapter[r1_adapter_name], name2adapter[r2_adapter_name]  
+    r1_adapter, r2_adapter = (
+        name2adapter[r1_adapter_name],
+        name2adapter[r2_adapter_name],
+    )
     return r1_adapter, r2_adapter
 
 
@@ -272,7 +299,10 @@ def map_fastqs(
     for r1_filename in r1_filenames:
         # identify the corresponding read2 filename
         r2_filename = r1_filename.replace(r1_fastq_suffix, r2_fastq_suffix)
-        prefix = os.path.join(mapped_output_directory, os.path.basename(r1_filename).split(r1_fastq_suffix)[0])
+        prefix = os.path.join(
+            mapped_output_directory,
+            os.path.basename(r1_filename).split(r1_fastq_suffix)[0],
+        )
         process = run(
             f"STAR --runThreadN {int(n_cores)} --genomeDir {reference_genome} --readFilesIn {r1_filename} {r2_filename} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {n_cores} --outFileNamePrefix {prefix} --readFilesCommand gunzip -c --quantMode GeneCounts"
         )
@@ -394,7 +424,7 @@ def qc_mapped_data(
     # perform gene body coverage analysis
     logger.info("Running gene body coverage analysis...")
     bam_filenames_str = ",".join(bam_filenames)
-    
+
     process = run(
         f"geneBody_coverage.py -i {bam_filenames_str} -r {reference_downsampled} -o {qc_reports_directory}"
     )
@@ -604,11 +634,14 @@ def main():
         # decide whether this step should be skipped
         skip_this_step = skip_step(pipeline_step=step, configs=configs)
         if skip_this_step:
+            write_status(f"{step}|skipped")
             continue
         try:
-            # update configuration if
+            # update configuration
+            write_status(f"{step}|inprogress")
             new_configs = executor(pipeline_step=step, configs=configs)
             configs.update(new_configs)
+            write_status(f"{step}|finished")
         except Exception as e:
             logger.error(f"Error in pipeline step {step}: {e}")
             raise ValueError(f"Error in pipeline step {step}: {e}")
