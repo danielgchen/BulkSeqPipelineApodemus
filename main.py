@@ -634,18 +634,19 @@ def main():
         # decide whether this step should be skipped
         skip_this_step = skip_step(pipeline_step=step, configs=configs)
         if skip_this_step:
-            write_status(f"{step}|skipped")
+            write_status(f"STATUS: {step} skipped")
             continue
         try:
             # update configuration
-            write_status(f"{step}|inprogress")
+            write_status(f"STATUS: {step} in_progress")
             new_configs = executor(pipeline_step=step, configs=configs)
             configs.update(new_configs)
-            write_status(f"{step}|finished")
+            write_status(f"STATUS: {step} finished")
         except Exception as e:
             logger.error(f"Error in pipeline step {step}: {e}")
             raise ValueError(f"Error in pipeline step {step}: {e}")
     logger.info("Pipeline completed successfully!")
+    write_status("INFO: Pipeline finished.")
 
 
 if __name__ == "__main__":

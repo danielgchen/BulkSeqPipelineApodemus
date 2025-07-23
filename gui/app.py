@@ -1,46 +1,54 @@
 import os
 import subprocess
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
+import yaml
 
-# --- Basic Setup ---
-# Initialize the Flask application
-# We specify the static_folder to be 'static'
+# define the path for the status file that will be written to by the main script (this is the same as constants)
+STATUS_FILE = "status.log"
+# this is derived from the default configuration file
+LOG_FILE = "BulkPipeline.log"
+
+# initialize the flask application
 app = Flask(__name__, static_folder="static")
-# Define the path for the log file
-STATUS_FILE = "history.log"
-LOG_FILE = "history.log"
-# Define the path for the configuration file
-CONFIG_FILE = "config.ini"
 
-
-# --- Main Route ---
+# main route for hosting the html
 @app.route("/")
 def index():
     """
     Renders the main HTML page.
     This function is called when a user navigates to the root URL.
     """
-    # Clear the log file on page load for a fresh start
+    # clear the log file on page load for a fresh start if it exists
     if os.path.exists(LOG_FILE):
         os.remove(LOG_FILE)
+    # rend the main page of the GUI
     return render_template("index.html")
 
-
-# --- Route to Run the Script ---
+# handles file submission and runs the pipeline
 @app.route("/run", methods=["POST"])
 def run_script():
     try:
-        # Get the form data from the POST request
+        # get the form data from the POST request
         data = request.json
-        # TODO update this to read from the YAML file and then update with the new parameter values
-        with open(CONFIG_FILE, "w") as f:
-            for key, value in data.items():
-                f.write(f"{key} = {value}\n")
-
-        # --- Execute the Main Script ---
-        subprocess.Popen(f"python main.py -c {CONFIG_FILE}", shell=True)
-
-        # Return a success message to the frontend
+        # locate the configuration file
+        config_file = data["config_file"]
+        # read in the YAML file to get the current parameters
+        if not os.path.exists(config_file):
+            return jsonify({"status": "error", "message": f"Configuration file {config_file} does not exist."}), 404
+        with open(config_file, "r") as f:
+            configs = yaml.safe_load(f)
+        # update the configuration file with the new parameters
+        for key, value in data.items():
+            if key == "config_file":
+                continue  # skip the config file key
+            configs[key] = value
+        # write the updated configuration back to the file
+        config_file_updated = config_file.replace(".yaml", "_updated.yaml")
+        with open(config_file_updated, "w") as f:
+            yaml.safe_dump(configs, f, default_flow_style=False)
+        # execute the main script with the updated configuration file
+        subprocess.Popen(f"python ../main.py -c {config_file_updated}", shell=True)
+        # return a success message to the frontend if the process starts successfully
         return jsonify(
             {
                 "status": "success",
@@ -48,24 +56,34 @@ def run_script():
             }
         )
     except Exception as e:
-        # Return an error message if something goes wrong
+        # return an error message if something goes wrong
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-# --- Route to Get Status ---
+# route to retrieve the status of the pipeline
 @app.route("/status")
 def status():
     if not os.path.exists(LOG_FILE):
         return jsonify({"log_content": ""})
-
     with open(LOG_FILE, "r") as f:
         content = f.read()
     return jsonify({"log_content": content})
 
 
-# --- Main Execution ---
+# main execution block to run the Flask app
 if __name__ == "__main__":
-    # Retrieve host to run on remote server
-    host = subprocess.check_output("hostname -i", shell=True).decode().strip()
-    # Run the Flask app in debug mode for development
-    app.run(host=host, port=5001, debug=False)
+    # retrieve host to run on remote server otherwise use local host
+    try:
+        host = subprocess.check_output("hostname -i", shell=True).decode().strip()
+    except:
+        # fall back to localhost
+        host = "127.0.0.1"
+    # run the Flask app in debug mode for development
+    # unique digits of the sum of amodeus in binary = 7722526
+    ports = [7256, 5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]
+    for port in ports:
+        try:
+            app.run(host=host, port=port, debug=True)
+            break  # exit the loop if the app runs successfully
+        except Exception as e:
+            print(f"Port {port} is in use, trying next port... Error: {e}")

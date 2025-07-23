@@ -8,12 +8,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Define Pipeline Modules ---
     const modules = [
-        "Quality_Control",
-        "Adapter_Trimming",
-        "Alignment",
-        "Post-Alignment_Processing",
-        "Variant_Calling",
-        "Annotation"
+        "qc_raw_fastq",
+        "detect_adapters",
+        "quantify_adapters",
+        "trim_fastq",
+        "qc_trimmed_fastq",
+        "map_fastq_to_bam",
+        "index_bam",
+        "dedup_bam",
+        "index_dedup_bam",
+        "qc_nondedup_bam",
+        "aggregate_counts",
+        "aggregate_qc_reports",
     ];
 
     // --- Initialize Flowchart ---
@@ -94,14 +100,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch('/status');
             const data = await response.json();
             const logContent = data.log_content;
+            const statusContent = data.status_content;
             
             logOutput.textContent = logContent;
             logOutput.scrollTop = logOutput.scrollHeight; // Auto-scroll to bottom
 
-            updateFlowchart(logContent);
+            updateFlowchart(statusContent);
 
             // Stop polling if the pipeline is finished
-            if (logContent.includes("INFO: Pipeline finished.")) {
+            if (statusContent.includes("INFO: Pipeline finished.")) {
                 clearInterval(pollingInterval);
                 resetRunButton();
             }
@@ -112,8 +119,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function updateFlowchart(logContent) {
-        const lines = logContent.split('\n');
+    function updateFlowchart(statusContent) {
+        const lines = statusContent.split('\n');
         lines.forEach(line => {
             if (line.startsWith('STATUS:')) {
                 const parts = line.split(' ');
@@ -128,12 +135,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateNodeStyle(node, status) {
-        // Remove all status-related classes first
+        // remove all status-related classes first
         node.classList.remove('bg-gray-100', 'border-gray-300', 'text-gray-500', 'bg-blue-100', 'border-blue-500', 'text-blue-800', 'bg-green-100', 'border-green-500', 'text-green-800', 'bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
         
         switch (status) {
             case 'in_progress':
                 node.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-800');
+                var elem = document.createElement("img");
+                elem.src = "static/img/gerbil_17081647.favicon.INPROGRESS.png";
+                elem.alt = "gerbil indicating step is in progress"
+                elem.classList.add('inline-block', 'h=3/4');
+                node.appendChild(elem);
                 break;
             case 'finished':
                 node.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
@@ -141,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'skipped':
                 node.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
                 break;
-            default: // Pending
+            default:
                 node.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-500');
                 break;
         }

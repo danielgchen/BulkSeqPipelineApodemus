@@ -6,7 +6,7 @@
 ---
 
 #### Install Relevant Packages
-The following code is meant to be run in the command line interface (CLI) of the Fred Hutch scientific computing server. Please adjust to your own server details as needed, i.e. install Python natively and installing FastQC etc. from their relevant websites. You will need to make sure to have RSeqQC and Picard installed separately and one method of attaching them is shown below, e.g. by setting the $PICARD variable.
+The following code is meant to be run in the command line interface (CLI) of the Fred Hutch scientific computing server. Please adjust to your own server details as needed, i.e. install Python natively and installing FastQC etc. from their relevant websites. You will need to make sure to have RSeqQC, Flask, PyYAML, and Picard installed separately and one method of attaching them is shown below, e.g. by setting the $PICARD variable.
 * module load Python/3.7.4-foss-2019b-fh1
 * module load FastQC/0.11.9-Java-11
 * module load MultiQC/1.9-foss-2019b-Python-3.7.4
@@ -17,7 +17,7 @@ The following code is meant to be run in the command line interface (CLI) of the
 * module load SAMtools/1.11-GCC-10.2.0
 * module load R/4.4.2-gfbf-2024a
 * export PICARD=$EBROOTPICARD/picard.jar
-* pip install RSeQC
+* pip install RSeQC Flask PyYAML
 
 ---
 

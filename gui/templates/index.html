@@ -4,52 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apodeus' Wheel</title>
-    <!-- tailwind CSS for styling -->
+    <!-- import CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- link to external stylesheet -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Google Fonts import -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+    <!-- set icon -->
+    <link rel="icon" type="image/x-icon" href="static/img/otter_2627454.favicon.ICON.png">
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+    <div class="container mx-auto p-4 md:p-8 max-w-10xl">
         <header class="text-center mb-8">
-            <!-- <img src="{{ url_for('static', filename='img/binky.FAILED.png') }}" alt="Apodemus Logo" id="logo"> -->
-            <img src="{{ url_for('static', filename='img/binky.FAILED.png') }}" alt="Apodemus Logo" id="logo">
+            <img src="static/img/apodemus.LOGO.png" alt="Apodemus Logo" id="logo">
             <h1 class="md:text-4xl font-bold text-gray-900">Bulk Sequencing Pipeline</h1>
             <p class="text-gray-600 mt-2">Configure parameters and monitor the pipeline progress in real-time.</p>
         </header>
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Configuration Section -->
             <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
                 <h2 class="text-xl font-semibold mb-4 border-b pb-2">Configuration</h2>
                 <form id="config-form" class="space-y-4">
-                    <!-- Input for configuration_file -->
                     <div>
-                        <label for="configuration_file" class="block text-sm font-medium text-gray-700">Configuration File</label>
-                        <input type="text" id="configuration_file" name="configuration_file" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/path/to/your/config.ini">
+                        <label for="config_file" class="block text-sm font-medium text-gray-700">Configuration File</label>
+                        <input type="text" id="config_file" name="config_file" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/config.yaml">
                     </div>
-                    <!-- Input for known_adapters_filename -->
                     <div>
-                        <label for="known_adapters_filename" class="block text-sm font-medium text-gray-700">Known Adapters</label>
-                        <input type="text" id="known_adapters_filename" name="known_adapters_filename" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/path/to/adapters.fa">
+                        <label for="pipeline_start_step" class="block text-sm font-medium text-gray-700">Pipeline Step to Start from</label>
+                        <input type="text" id="pipeline_start_step" name="pipeline_start_step" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="qc_raw_fastq">
                     </div>
-                    <!-- Input for log_file -->
                     <div>
-                        <label for="log_file" class="block text-sm font-medium text-gray-700">Log File</label>
-                        <input type="text" id="log_file" name="log_file" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/path/to/pipeline.log">
+                        <label for="run_directory" class="block text-sm font-medium text-gray-700">Output (Intermediate) Directory</label>
+                        <input type="text" id="run_directory" name="run_directory" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_gui_run">
                     </div>
-                    <!-- Input for bam_reference -->
                     <div>
-                        <label for="bam_reference" class="block text-sm font-medium text-gray-700">BAM Reference</label>
-                        <input type="text" id="bam_reference" name="bam_reference" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/path/to/reference.bam">
+                        <label for="raw_fastq_directory" class="block text-sm font-medium text-gray-700">Raw FASTQ Directory</label>
+                        <input type="text" id="raw_fastq_directory" name="raw_fastq_directory" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/data">
                     </div>
-                    <!-- Input for reference_genome -->
                     <div>
-                        <label for="reference_genome" class="block text-sm font-medium text-gray-700">Reference Genome</label>
-                        <input type="text" id="reference_genome" name="reference_genome" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/path/to/genome.fa">
+                        <label for="fastq_suffix" class="block text-sm font-medium text-gray-700">FASTQ File Suffix</label>
+                        <input type="text" id="fastq_suffix" name="fastq_suffix" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder=".fastq.gz">
+                    </div>
+                    <div>
+                        <label for="r1" class="block text-sm font-medium text-gray-700">R1 File Label</label>
+                        <input type="text" id="r1" name="r1" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="read1">
+                    </div>
+                    <div>
+                        <label for="r2" class="block text-sm font-medium text-gray-700">R2 File Label</label>
+                        <input type="text" id="r2" name="r2" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="read2">
+                    </div>
+                    <div>
+                        <label for="reference_genome" class="block text-sm font-medium text-gray-700">Reference Genome (STAR Indexed)</label>
+                        <input type="text" id="reference_genome" name="reference_genome" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/BULKRNASEQ_FOR_SHIHONG/data/reference_STAR">
+                    </div>
+                    <div>
+                        <label for="n_cores" class="block text-sm font-medium text-gray-700">Number of Cores (CPUs)</label>
+                        <input type="text" id="n_cores" name="n_cores" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="10">
+                    </div>
+                    <div>
+                        <label for="bam_qc_reference" class="block text-sm font-medium text-gray-700">BED Reference for BAM QC</label>
+                        <input type="text" id="bam_qc_reference" name="bam_qc_reference" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/BULKRNASEQ_FOR_YAPENG_250626HUMAN/data/reference/hg38_RefSeq.bed">
+                    </div>
+                    <div>
+                        <label for="bam_qc_reference_downsampled" class="block text-sm font-medium text-gray-700">Downsampled BED Reference for BAM QC</label>
+                        <input type="text" id="bam_qc_reference_downsampled" name="bam_qc_reference_downsampled" class="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="/fh/fast/greenberg_p/user/dchen2/BULKRNASEQ_FOR_YAPENG_250626HUMAN/data/reference/hg38_RefSeq_2k_genes.bed">
                     </div>
                     <!-- Run Button -->
                     <button type="submit" id="run-button" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
@@ -65,11 +80,12 @@
                 <div id="flowchart" class="flex flex-col items-center space-y-0">
                     <!-- Flowchart will be generated by JavaScript -->
                 </div>
-                <!-- Log Viewer -->
-                <div class="mt-6">
-                    <h3 class="text-lg font-semibold mb-2">Live Log</h3>
-                    <pre id="log-output" class="bg-gray-900 text-white text-xs p-4 rounded-md h-48 overflow-y-auto whitespace-pre-wrap break-words"></pre>
-                </div>
+            </div>
+
+            <!-- Live Log Section -->
+            <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h2 class="text-xl font-semibold mb-4 border-b pb-2">Live Log</h2>
+                <pre id="log-output" class="bg-gray-900 text-white text-xs p-4 rounded-md h-48 md:h-1/2 overflow-y-auto whitespace-pre-wrap break-words"></pre>
             </div>
         </main>
 
@@ -82,6 +98,6 @@
         </div>
     </div>  
     <!-- Link to external JavaScript file -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="static/js/script.js"></script>
 </body>
 </html>
