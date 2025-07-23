@@ -619,7 +619,7 @@ def main():
         help="Directory to run the pipeline in",
     )
     args = parser.parse_args()
-
+    
     # configure logger and pipeline
     setup_logger(filename=args.log_file)
     configs = load_configs(filename=args.configuration_file)

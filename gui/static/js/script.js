@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateNodeStyle(node, status) {
         // remove all status-related classes first
         node.classList.remove('bg-gray-100', 'border-gray-300', 'text-gray-500', 'bg-blue-100', 'border-blue-500', 'text-blue-800', 'bg-green-100', 'border-green-500', 'text-green-800', 'bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
+        // remove all previous children
+        const childrenToRemove = node.querySelectorAll('img');
+        childrenToRemove.forEach(child => { child.remove() });
         
         switch (status) {
             case 'in_progress':
@@ -144,14 +147,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 var elem = document.createElement("img");
                 elem.src = "static/img/gerbil_17081647.favicon.INPROGRESS.png";
                 elem.alt = "gerbil indicating step is in progress"
-                elem.classList.add('inline-block', 'h=3/4');
+                elem.classList.add('inline-block', 'height=100px');
                 node.appendChild(elem);
                 break;
             case 'finished':
                 node.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                var elem = document.createElement("img");
+                elem.src = "static/img/experiment_1360747.favicon.COMPLETED.png";
+                elem.alt = "mouse with checkmark indicating step is completed"
+                elem.classList.add('inline-block', 'height=100px');
+                node.appendChild(elem);
                 break;
             case 'skipped':
                 node.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-800');
+                var elem = document.createElement("img");
+                elem.src = "static/img/mouse_4786662.favicon.SKIPPED.png";
+                elem.alt = "mouse indicating step is skipped"
+                elem.classList.add('inline-block', 'height=100px');
+                node.appendChild(elem);
                 break;
             default:
                 node.classList.add('bg-gray-100', 'border-gray-300', 'text-gray-500');

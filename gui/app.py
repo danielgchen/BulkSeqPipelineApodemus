@@ -63,11 +63,13 @@ def run_script():
 # route to retrieve the status of the pipeline
 @app.route("/status")
 def status():
-    if not os.path.exists(LOG_FILE):
-        return jsonify({"log_content": ""})
+    log_content = ""
+    status_content = ""
     with open(LOG_FILE, "r") as f:
-        content = f.read()
-    return jsonify({"log_content": content})
+        log_content = f.read()
+    with open(STATUS_FILE, "r") as f:
+        status_content = f.read()
+    return jsonify({"log_content": log_content, "status_content": status_content})
 
 
 # main execution block to run the Flask app
@@ -78,6 +80,11 @@ if __name__ == "__main__":
     except:
         # fall back to localhost
         host = "127.0.0.1"
+    # clear the previous status log
+    for filename in [STATUS_FILE, LOG_FILE]:
+        if os.path.exists(filename):
+            os.remove(filename)
+        open(filename, 'w').close()
     # run the Flask app in debug mode for development
     # unique digits of the sum of amodeus in binary = 7722526
     ports = [7256, 5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]

@@ -1,0 +1,3 @@
+Sample	pe_sense	pe_antisense	failed
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | bam_qc | test	0.4861	0.4506	0.0633
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | bam_qc | test_PICARD_DEDUPED.strand_inference	0.4833	0.4499	0.0668

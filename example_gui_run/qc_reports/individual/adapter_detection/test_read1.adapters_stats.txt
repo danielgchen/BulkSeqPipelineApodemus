@@ -1,0 +1,5 @@
+#File	/fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/data/test_read1.fastq.gz
+#Total	2500
+#Matched	31	1.24000%
+#Name	Reads	ReadsPct
+Reverse_adapter	31	1.24000%

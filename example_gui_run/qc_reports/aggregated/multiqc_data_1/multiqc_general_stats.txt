@@ -1,0 +1,7 @@
+Sample	Cutadapt_mqc-generalstats-cutadapt-percent_trimmed	Picard_mqc-generalstats-picard-PERCENT_DUPLICATION	FastQC_mqc-generalstats-fastqc-percent_duplicates	FastQC_mqc-generalstats-fastqc-percent_gc	FastQC_mqc-generalstats-fastqc-avg_sequence_length	FastQC_mqc-generalstats-fastqc-percent_fails	FastQC_mqc-generalstats-fastqc-total_sequences
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | cutadapt_output | test_read2	0.32466666666666666						
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | dedup_stats | test		0.166307					
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | raw_fastqc | test_read1			16.36	50.0	150.0	9.090909090909092	2500.0
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | raw_fastqc | test_read2			16.080000000000013	49.0	150.0	9.090909090909092	2500.0
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | trimmed_fastqc | test_read1			16.36	50.0	149.2496	9.090909090909092	2500.0
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | trimmed_fastqc | test_read2			16.080000000000013	49.0	149.6784	9.090909090909092	2500.0

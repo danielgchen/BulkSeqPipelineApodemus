@@ -1,0 +1,2 @@
+Sample	pairs_processed	r1_with_adapters	r2_with_adapters	pairs_written	bp_processed	quality_trimmed	bp_written	percent_trimmed
+fh | fast | greenberg_p | user | dchen2 | WILDLIFE | bulk_seq_revised | example_gui_run | qc_reports | individual | cutadapt_output | test_read2	2500	103	48	2500	750000	1161	747565	0.32466666666666666
