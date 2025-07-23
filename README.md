@@ -38,4 +38,4 @@ See the `example_inputs/configs.yaml` file for an example of what is required fo
 ---
 
 #### Run the Pipeline
-Pipeline can then be run from the command line utilizing `python main.py -c <CONFIGURATION_FILE>`.
+Pipeline can then be run from the command line utilizing `python main.py -c <CONFIGURATION_FILE>`. This is via the CLI, you could also run this via a graphical-user-interface, by editing your own configuration file and opening a Flask app via `cd gui` to enter the GUI directory and then `python app.py` which will provide you a link to open a website able to run the pipeline for you and track the current pipeline status.
