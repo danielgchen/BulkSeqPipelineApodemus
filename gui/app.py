@@ -65,5 +65,7 @@ def status():
 
 # --- Main Execution ---
 if __name__ == "__main__":
+    # Retrieve host to run on remote server
+    host = subprocess.check_output("hostname -i", shell=True).decode().strip()
     # Run the Flask app in debug mode for development
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host=host, port=5001, debug=False)
