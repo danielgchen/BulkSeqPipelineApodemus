@@ -4,9 +4,14 @@ from flask import Flask, render_template, request, jsonify
 import yaml
 
 # define the path for the status file that will be written to by the main script (this is the same as constants)
-STATUS_FILE = "status.log"
-# this is derived from the default configuration file
-LOG_FILE = "BulkPipeline.log"
+DIRECTORY = os.path.dirname(".")
+STATUS_FILE = os.path.join(DIRECTORY, "status.log")
+LOG_FILE = os.path.join(DIRECTORY, "BulkPipeline.log")
+# clear the previous status log
+for filename in [STATUS_FILE, LOG_FILE]:
+    if os.path.exists(filename):
+        os.remove(filename)
+    open(filename, 'w').close()
 
 # initialize the flask application
 app = Flask(__name__, static_folder="static")
@@ -47,7 +52,7 @@ def run_script():
         with open(config_file_updated, "w") as f:
             yaml.safe_dump(configs, f, default_flow_style=False)
         # execute the main script with the updated configuration file
-        subprocess.Popen(f"python ../main.py -c {config_file_updated}", shell=True)
+        subprocess.Popen(f"python ../main.py -c {config_file_updated} -l {LOG_FILE}", shell=True)
         # return a success message to the frontend if the process starts successfully
         return jsonify(
             {
@@ -65,10 +70,13 @@ def run_script():
 def status():
     log_content = ""
     status_content = ""
-    with open(LOG_FILE, "r") as f:
-        log_content = f.read()
-    with open(STATUS_FILE, "r") as f:
-        status_content = f.read()
+    try:
+        with open(LOG_FILE, "r") as f:
+            log_content = f.read()
+        with open(STATUS_FILE, "r") as f:
+            status_content = f.read()
+    except:
+        pass
     return jsonify({"log_content": log_content, "status_content": status_content})
 
 
@@ -80,11 +88,6 @@ if __name__ == "__main__":
     except:
         # fall back to localhost
         host = "127.0.0.1"
-    # clear the previous status log
-    for filename in [STATUS_FILE, LOG_FILE]:
-        if os.path.exists(filename):
-            os.remove(filename)
-        open(filename, 'w').close()
     # run the Flask app in debug mode for development
     # unique digits of the sum of amodeus in binary = 7722526
     ports = [7256, 5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009, 5010]

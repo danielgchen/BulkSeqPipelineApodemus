@@ -1,7 +1,7 @@
 This is cutadapt 2.9 with Python 3.7.4
 Command line parameters: -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG -A AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT -m 20 -q 20 -o /fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_gui_run/data/trimmed_data/test_read1_trimmed.fastq.gz -p /fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_gui_run/data/trimmed_data/test_read2_trimmed.fastq.gz /fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/data/test_read1.fastq.gz /fh/fast/greenberg_p/user/dchen2/WILDLIFE/bulk_seq_revised/example_inputs/data/test_read2.fastq.gz
 Processing reads on 1 core in paired-end mode ...
-Finished in 0.41 s (166 us/read; 0.36 M reads/minute).
+Finished in 0.41 s (164 us/read; 0.37 M reads/minute).
 
 === Summary ===
 

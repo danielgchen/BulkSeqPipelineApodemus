@@ -611,13 +611,6 @@ def main():
         default="BulkPipeline.log",
         help="Path to the log file",
     )
-    parser.add_argument(
-        "-d",
-        "--directory",
-        type=str,
-        default="./",
-        help="Directory to run the pipeline in",
-    )
     args = parser.parse_args()
     
     # configure logger and pipeline
