@@ -12,13 +12,16 @@ from constants import *
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+def clear_status(status_file: str) -> None:
+    # clear data in 
+    open(status_file, "w").close()
 
-def write_status(message: str) -> None:
+def write_status(message: str, status_file: str) -> None:
     # write a message to the status file
-    with open(STATUS_FILE, "a") as f:
+    with open(status_file, "a") as f:
         f.write(f"{message}\n")
-    logger.info(f"Status updated to {STATUS_FILE} with {message}")
-
+    logger.info(f"Status updated to {status_file} with {message}")
+    
 
 def setup_logger(filename: str) -> None:
     # set up logger to write to a given file
@@ -27,9 +30,15 @@ def setup_logger(filename: str) -> None:
         format="[%(asctime)s] %(levelname)s: %(message)s",
         handlers=[logging.FileHandler(filename)],
     )
-    logger.info("Initialized logging for BulkPipeline")
+    logger.info("Initialized logging")
 
 
+def run(command: str) -> subprocess.Popen:
+    # run a command in the shell and return the process
+    logger.info(f"Running `{command}`...")
+    process = subprocess.Popen(command, shell=True)
+    return process
+    
 def load_configs(filename: str) -> Dict:
     # read in the configuration file
     logger.info(f"Loading configuration from {filename}")
@@ -60,13 +69,6 @@ def identify_start_step(configs: Dict, pipeline_steps: List[str]) -> List[str]:
     # subset the pipeline steps based on the requested starting step
     relevant_steps = pipeline_steps[start_step_index:]
     return relevant_steps
-
-
-def run(command: str) -> subprocess.Popen:
-    # run a command in the shell and return the process
-    logger.info(f"Running `{command}`...")
-    process = subprocess.Popen(command, shell=True)
-    return process
 
 
 def run_fastqc(fastq_suffix: str, fastq_directory: str, output_directory: str) -> None:
@@ -306,10 +308,8 @@ def map_fastqs(
         process = run(
             f"STAR --runThreadN {int(n_cores)} --genomeDir {reference_genome} --readFilesIn {r1_filename} {r2_filename} --outSAMtype BAM SortedByCoordinate --outBAMsortingThreadN {n_cores} --outFileNamePrefix {prefix} --readFilesCommand gunzip -c --quantMode GeneCounts"
         )
-        processes.append(process)
-    # wait for all processes to finish
-    logger.info("Waiting for STAR mapping processes to finish...")
-    for process in processes:
+        # wait for process to finish
+        logger.info("Waiting for STAR mapping process to finish...")
         process.wait()
     logger.info(
         f"Mapping completed successfully with outputs written to {mapped_output_directory}"
@@ -449,15 +449,15 @@ def generate_count_matrix(
     counts = []
     for count_file in count_files:
         # read in the count file and set the appropriate columns
-        df = pd.read_table(count_file, header=None)
-        df.columns = ["GeneID", "Unstranded", "Sense-Stranded", "Antisense-Stranded"]
-        df = df.iloc[4:][["GeneID", "Unstranded"]].set_index("GeneID")
-        df.columns = [os.path.basename(count_file).split(count_suffix)[0]]
+        df = pd.read_table(count_file, header=None, index_col=0)
+        df.columns = ["Unstranded", "Sense-Stranded", "Antisense-Stranded"]
+        df = df.iloc[4:]["Unstranded"]
+        df.name = os.path.basename(count_file).split(count_suffix)[0]
         counts.append(df)
     counts = pd.concat(counts, axis=1).fillna(0)
     os.makedirs(output_directory, exist_ok=True)
     filename = os.path.join(output_directory, output_filename)
-    df.to_csv(filename)
+    counts.to_csv(filename)
     logger.info(f"Count matrix generated at {filename}")
 
 
@@ -627,19 +627,19 @@ def main():
         # decide whether this step should be skipped
         skip_this_step = skip_step(pipeline_step=step, configs=configs)
         if skip_this_step:
-            write_status(f"STATUS: {step} skipped")
+            write_status(f"STATUS: {step} skipped", status_file=STATUS_FILE)
             continue
         try:
             # update configuration
-            write_status(f"STATUS: {step} in_progress")
+            write_status(message=f"STATUS: {step} in_progress")
             new_configs = executor(pipeline_step=step, configs=configs)
             configs.update(new_configs)
-            write_status(f"STATUS: {step} finished")
+            write_status(message=f"STATUS: {step} finished", status_file=STATUS_FILE)
         except Exception as e:
             logger.error(f"Error in pipeline step {step}: {e}")
             raise ValueError(f"Error in pipeline step {step}: {e}")
     logger.info("Pipeline completed successfully!")
-    write_status("INFO: Pipeline finished.")
+    write_status(message="INFO: Pipeline finished.", status_file=STATUS_FILE)
 
 
 if __name__ == "__main__":

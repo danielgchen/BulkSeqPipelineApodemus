@@ -1,6 +1,18 @@
 ## Ol' Reliable Apodemus - a standard bulk-seq pipeline
 
 ---
+
+## Summary
+<p>
+    <img src="gui/static/img/apodemus.LOGO.png" alt="Apodemus logo of blue mouse" width="90" align="left"/>
+    Apodemus maps FASTQs to BAMs with automated<br>
+    preprocessing (i.e. trimming) and is accompanied<br>
+    by its mouselets for downstream analyses.<br><br>
+</p>
+
+
+---
+
 ### Quick Start
 
 ---
@@ -38,4 +50,13 @@ See the `example_inputs/configs.yaml` file for an example of what is required fo
 ---
 
 #### Run the Pipeline
-Pipeline can then be run from the command line utilizing `python main.py -c <CONFIGURATION_FILE>`. This is via the CLI, you could also run this via a graphical-user-interface, by editing your own configuration file and opening a Flask app via `cd gui` to enter the GUI directory and then `python app.py` which will provide you a link to open a website able to run the pipeline for you and track the current pipeline status.
+Pipeline can then be run from the command line utilizing `python main.py -c <CONFIGURATION_FILE>`. This is via the CLI, you could also run this via a graphical-user-interface, by editing your own configuration file and opening a Flask app via `cd gui` to enter the GUI directory and then `python app.py` which will provide you a link to open a website able to run the pipeline for you and track the current pipeline status (**see the file in `docs/walkthrough.mov` for a video tutorial**).
+
+---
+
+### Downstream Analyses
+Please see the `scripts_downstream` for one-off scripts to automatically run:
+* `pyscenic` for transcription factor activity inference (via `pyscenic_executor.py`)
+* `metaflux` for metabolic activity inference (via `metaflux.py`)
+* Auto/paracrine signaling inference (via `ligandreceptor.py`)
+* Import `lib_enrichr_kea_chea.py` for functions to API request against Ma'ayan lab libraries

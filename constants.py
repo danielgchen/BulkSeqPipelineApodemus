@@ -1,3 +1,5 @@
+from scripts_downstream.constants import *
+
 # pipeline steps, in order, from raw data to raw counts
 PIPELINE_STEPS = [
     "qc_raw_fastq",

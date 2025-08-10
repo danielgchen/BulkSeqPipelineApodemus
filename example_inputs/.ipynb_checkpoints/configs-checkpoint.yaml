@@ -37,6 +37,6 @@ bam_qc_reference_downsampled: '/fh/fast/greenberg_p/user/dchen2/BULKRNASEQ_FOR_Y
 # COUNT AGGREGATION CONFIGURATION
 count_suffix: '_ReadsPerGene.out.tab'
 counts_output_directory: 'outputs'
-counts_output_filename: 'raw_counts.tsv'
+counts_output_filename: 'raw_counts.csv'
 qc_reports_directory: 'qc_reports/individual'
 multiqc_output_directory: 'qc_reports/aggregated'

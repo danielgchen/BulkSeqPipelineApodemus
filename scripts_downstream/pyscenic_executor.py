@@ -3,18 +3,34 @@ import datetime
 import logging
 import os
 import pandas as pd
+import subprocess
 from typing import Dict, Tuple
+# private packages
+from constants import *
 
 # create a logger object writing to the given file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # create constants for database locations
-TF_DB = "/fh/fast/greenberg_p/user/dchen2/SAUCE/resources/pyscenic_data/allTFs_hg38.txt"
-FEATHER_PT = "/fh/fast/greenberg_p/user/dchen2/SAUCE/resources/pyscenic_data/*.feather"
-ANNO_FN = "/fh/fast/greenberg_p/user/dchen2/SAUCE/resources/pyscenic_data/motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl"
 TIMESTAMP = round(datetime.datetime.now().timestamp())
 
+def setup_logger(filename: str) -> None:
+    # set up logger to write to a given file
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] %(levelname)s: %(message)s",
+        handlers=[logging.FileHandler(filename)],
+    )
+    logger.info("Initialized logging")
+
+
+def run(command: str) -> subprocess.Popen:
+    # run a command in the shell and return the process
+    logger.info(f"Running `{command}`...")
+    process = subprocess.Popen(command, shell=True)
+    return process
+    
 def construct_filenames(output_directory: str, timestamp: int) -> Tuple[str, str, str, str]:
     expr_mtx = os.path.join(output_directory, f"{timestamp}.expr.csv")
     adj_fn = os.path.join(output_directory, f"{timestamp}.adj.csv")
@@ -36,7 +52,7 @@ def validate_timestamp(output_directory: str, timestamp: int) -> Tuple[str, int]
     filenames = construct_filenames(output_directory=output_directory, timestamp=timestamp)
     # instantiate tracker t
     n_tries = 0
-    while os.path.exists(validate_filenames(filenames=filenames)):
+    while validate_filenames(filenames=filenames):
         # reconstruct the filenames based on the new stamp
         timestamp += 1
         filenames = construct_filenames(output_directory=output_directory, timestamp=timestamp)
@@ -44,20 +60,16 @@ def validate_timestamp(output_directory: str, timestamp: int) -> Tuple[str, int]
         n_tries += 1
         if n_tries >= 5:
             break
-    if os.path.exists(adj_fn):
+    if validate_filenames(filenames=filenames):
         raise ValueError("Temporary filename cannot be found")
     logger.info(f"Valid timestamp {timestamp} has been found.")
     return timestamp
-
-def run(command: str) -> subprocess.Popen:
-    # run a command in the shell and return the process
-    logger.info(f"Running `{command}`...")
-    process = subprocess.Popen(command, shell=True)
-    return process
     
 def run_arboreto_mp(expr_mtx: str, out_fn: str, tf_db: str = TF_DB, n_cores: int = 1):
     logger.info(f"Running arboreto with multiprocessing enabled {n_cores} cores to find co-expression modules...")
-    process = run(f"python arboreto_with_multiprocessing.py {expr_mtx} {tf_db} -o {out_fn} --num_workers {n_cores} --seed 0")
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, "arboreto_with_multiprocessing.py")
+    process = run(f"python {filename} {expr_mtx} {tf_db} -o {out_fn} --num_workers {n_cores} --seed 0")
     process.wait()
     logger.info("arboreto has finished running.")
 
@@ -67,7 +79,7 @@ def run_tx_corr(expr_mtx: str, adj_fn: str, out_fn: str, feather_pat: str = FEAT
     process.wait()
     logger.info("ctx has finished running.")
 
-def run_aucell(expr_mtx: str, reg_fn: str, out_fn: str):
+def run_aucell(expr_mtx: str, reg_fn: str, out_fn: str, n_cores: int = 1):
     logger.info(f"Compute TF activity via AUC of ranked gene expression...")
     process = run(f"pyscenic aucell {expr_mtx} {reg_fn} --output {out_fn} --num_workers {n_cores}")
     process.wait()
@@ -77,7 +89,7 @@ def main():
     # read in command line arguments
     parser = argparse.ArgumentParser(description="CellPhoneDB Autocrine Signaling Quantification")
     parser.add_argument(
-        "-d",
+        "-i",
         "--expression_file",
         type=str,
         default="/home/dchen2/TMP/expr.csv",
@@ -104,11 +116,20 @@ def main():
         default=False,
         help="Whether to transpose the expression matrix, i.e. if it is rows are genes and columns are samples"
     )
+    parser.add_argument(
+        "-l",
+        "--logging_file",
+        type=str,
+        default="BulkPipelineDownstream.pyscenic.log",
+        help="Path to log file for this downstream task"
+    )
     args = parser.parse_args()
+    # setup logger
+    setup_logger(filename=args.logging_file)
 
     # create the output directory if it does not already exist and find an appropriate timestamp
     os.makedirs(args.output_directory, exist_ok=True)
-    timestamp = validate_timestamp(output_directory=args.output_directory, timestamp=timestamp)
+    timestamp = validate_timestamp(output_directory=args.output_directory, timestamp=TIMESTAMP)
     expr_mtx, adj_fn, reg_fn, out_fn = construct_filenames(output_directory=args.output_directory, timestamp=timestamp)
     
     # write down the expression matrix
@@ -117,10 +138,12 @@ def main():
     expr_mtx_data.to_csv(expr_mtx)
 
     # sprint through the pipeline
-    run_arboreto_mp(expr_mtx=expr_mtx, out_fn=adj_fn, n_cores=args.n_cores):
+    run_arboreto_mp(expr_mtx=expr_mtx, out_fn=adj_fn, n_cores=args.n_cores)
     run_tx_corr(expr_mtx=expr_mtx, adj_fn=adj_fn, out_fn=reg_fn, n_cores=args.n_cores)
-    run_aucell(expr_mtx=expr_mtx, reg_fn=reg_fn, out_fn=out_fn)
-    
+    run_aucell(expr_mtx=expr_mtx, reg_fn=reg_fn, out_fn=out_fn, n_cores=args.n_cores)
+    # remove temporary files
+    for fn in [adj_fn, reg_fn]:
+        os.remove(fn)
     
 if __name__ == "__main__":
     main()
